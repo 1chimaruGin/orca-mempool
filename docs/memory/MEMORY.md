@@ -1,0 +1,6 @@
+- [BSC RPC node project](project_bsc_rpc.md) — bot-only BSC mainnet RPC + mempool node on Hetzner AX41-NVMe
+- [HTTP-only RPC, no TLS](feedback_no_tls.md) — bot connects directly by IP+API key; do not add certbot/TLS
+- [Server layout](reference_server_layout.md) — paths, RAID, service names for /data/bsc-rpc
+- [Storage Box for backups](reference_storage_box.md) — 5 TB Hetzner box at HEL1, key-auth rsync target for chaindata + snapshot staging
+- [Migration to Asia DC](project_migration_plan.md) — cancel Hetzner by 2026-05-25, migrate to Tokyo/Singapore for BSC latency. Storage box = migration vehicle.
+- [BSC chain facts (2026)](reference_bsc_chain_facts.md) — current block time 0.45s after Fermi hardfork; do not quote stale Maxwell/Lorentz figures.

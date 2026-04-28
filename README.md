@@ -98,14 +98,48 @@ with header `X-API-Key: <contents of $DATADIR/config/api.key>`.
 │   └── ssh/
 │       └── 00-bsc-rpc-hardening.conf
 └── docs/
-    ├── lessons-learned.md       # READ THIS BEFORE NEXT DEPLOY
-    ├── phase2-sg-relay.md       # Singapore relay + multi-path submit (next phase)
-    └── architecture.svg         # Phase-by-phase flow diagram
+    ├── lessons-learned.md           # READ THIS BEFORE NEXT DEPLOY
+    ├── handoff-singapore-redeploy.md # Migration playbook (current state)
+    ├── phase2-sg-relay.md           # AWS+WireGuard relay (skip if already in SG)
+    ├── architecture.svg             # Phase-by-phase flow diagram
+    └── memory/                      # Agent-built context for the next deploy
 ```
 
 ---
 
-## Phase 2 — Singapore relay + multi-path submit
+## Picking a region BEFORE you buy
+
+[`scripts/latency-probe.sh`](scripts/latency-probe.sh) measures TCP / TLS /
+JSON-RPC RTT to BSC-validator-adjacent endpoints. Run it from a short-rented
+hourly VM in each candidate region (AWS Lightsail / EC2 t3.micro, Vultr,
+Latitude.sh hourly) before committing to a monthly bare-metal lease.
+
+What good Singapore bare-metal looks like: `bsc-dataseed.bnbchain.org`
+JSON-RPC RTT < 30 ms, `puissant-bsc.48.club` < 20 ms.
+
+What Hetzner HEL1 measured (this repo's first deploy): 171 ms / 107 ms.
+Don't deploy a sniping BSC node anywhere those numbers don't get under
+~30 ms.
+
+## Migrating to Singapore (2026-04-28 onwards)
+
+See [`docs/handoff-singapore-redeploy.md`](docs/handoff-singapore-redeploy.md)
+for the step-by-step. The summary:
+
+1. Run latency probe in candidate Asian DCs, pick the winner.
+2. Provision bare metal there (Latitude.sh / OVH / Cherry / Equinix).
+3. `git clone`, `./install.sh`, `./scripts/download-snapshot.sh` (or
+   restore from Storage Box if you backed up before cancelling).
+4. Wire bot to subscribe to Puissant + BlockRazor mempool feeds in
+   parallel; submit txs fan-out to all three.
+5. Skip the WireGuard / AWS relay phase below — not needed once you're
+   already in Singapore.
+
+## Phase 2 — Singapore relay + multi-path submit (legacy)
+
+> Designed when the plan was still "keep Hetzner EU + add AWS Singapore
+> relay." If you're directly deploying in Singapore, skip this section
+> and go straight to the handoff doc above.
 
 After Phase 1 (this README) is deployed and the bot is verified, the next
 step is to add Asian-DC tx-submission paths. With BSC block time at 0.45 s
