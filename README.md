@@ -99,8 +99,39 @@ with header `X-API-Key: <contents of $DATADIR/config/api.key>`.
 │       └── 00-bsc-rpc-hardening.conf
 └── docs/
     ├── lessons-learned.md       # READ THIS BEFORE NEXT DEPLOY
+    ├── phase2-sg-relay.md       # Singapore relay + multi-path submit (next phase)
     └── architecture.svg         # Phase-by-phase flow diagram
 ```
+
+---
+
+## Phase 2 — Singapore relay + multi-path submit
+
+After Phase 1 (this README) is deployed and the bot is verified, the next
+step is to add Asian-DC tx-submission paths. With BSC block time at 0.45 s
+(Fermi hard fork, 2026-01-14), Hetzner-to-validator RTT of 150 ms is 33 %
+of a single block — Asian relays are effectively required to compete.
+See [`docs/phase2-sg-relay.md`](docs/phase2-sg-relay.md) for the full
+design, plus:
+
+- [`scripts/phase2-setup-aws-relay.sh`](scripts/phase2-setup-aws-relay.sh)
+  — runs on a fresh AWS Singapore box, brings up WireGuard + nginx relay
+- [`scripts/phase2-setup-hetzner-wg.sh`](scripts/phase2-setup-hetzner-wg.sh)
+  — runs on the Hetzner box, adds the WireGuard peer
+- [`config/wireguard/`](config/wireguard/) — WG config templates for both ends
+- [`config/nginx/aws-relay.conf.template`](config/nginx/aws-relay.conf.template)
+  — AWS-side reverse proxy that forwards JSON-RPC to BSC over the tunnel
+
+The bot becomes a **parallel-submit fan-out**:
+
+```
+signed snipe tx ──┬─► Hetzner local geth          (slow, fallback)
+                  ├─► Puissant rpc                 (Asia, free, validator-direct)
+                  ├─► BlockRazor bundle endpoint   (Asia, free tier)
+                  └─► AWS SG over WireGuard        (Asia, free tier 12 mo)
+```
+
+Same nonce, only one lands; duplicates dropped at validators.
 
 ---
 

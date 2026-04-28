@@ -1,0 +1,47 @@
+# AWS-side reverse proxy that the Hetzner bot hits over the WireGuard tunnel
+# at http://10.0.0.2:8545/ . AWS forwards JSON-RPC to a public BSC RPC (or to
+# Puissant directly) on the Asian side - shaving ~150ms off tx-submit RTT.
+#
+# Place at /etc/nginx/sites-available/bsc-aws-relay and symlink into sites-enabled.
+
+map_hash_bucket_size 128;
+
+map $http_x_api_key $bsc_api_ok {
+    default 0;
+    "__API_KEY__" 1;
+}
+
+# Pick ONE upstream. Default = public BSC RPC. Swap for Puissant or
+# BlockRazor when you want validator-direct submission.
+upstream bsc_asia_submit {
+    # Public BSC RPCs (round-robin, no per-RPC SLA):
+    server bsc-dataseed.bnbchain.org:443;
+    # Or use Puissant (Asia, validator-direct, free):
+    # server puissant-bsc.48.club:443;
+}
+
+server {
+    listen 8545 default_server;
+    listen [::]:8545 default_server;
+
+    # Only accept connections from the WireGuard tunnel peer. Adds defense
+    # in depth on top of the API key.
+    allow 10.0.0.1/32;
+    deny  all;
+
+    access_log /var/log/nginx/bsc-aws-relay-access.log;
+    error_log  /var/log/nginx/bsc-aws-relay-error.log;
+
+    location / {
+        if ($bsc_api_ok = 0) {
+            return 403 "missing or invalid X-API-Key\n";
+        }
+        proxy_pass         https://bsc_asia_submit;
+        proxy_ssl_server_name on;
+        proxy_set_header   Host bsc-dataseed.bnbchain.org;
+        proxy_http_version 1.1;
+        proxy_read_timeout 30s;
+        proxy_send_timeout 30s;
+        proxy_buffering    off;
+    }
+}

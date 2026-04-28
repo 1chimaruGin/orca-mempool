@@ -12,12 +12,16 @@ We deployed on **Hetzner HEL1 (Helsinki, Finland)** before discussing where the
 bot actually trades. BSC validators run **mostly in Asia (Singapore, Tokyo,
 Hong Kong)**. Round-trip latency from HEL1 → BSC validator is **150-250 ms**.
 
-Why this matters:
-- For most token-launch sniping on 3-second BSC blocks, an EU node still gets
-  txs landed (gas-price ordering inside a block beats arrival-order). You
-  *won't* be the absolute fastest but you'll fill many opportunities.
-- For high-frequency sandwich MEV competing every block, EU is uncompetitive.
-  The top sandwich bots colocate in Asia.
+Why this matters (BSC block time is **0.45 s** as of Fermi hard fork
+2026-01-14; ~1 s finality):
+- A 150 ms Hetzner-to-validator RTT is roughly **33 % of a single block**.
+  At 0.45 s blocks, an EU node consistently misses block N+1 and fights for
+  block N+2 instead — losing nearly every gas-price-tied race against an
+  Asian-DC bot that lands in block N.
+- For token-launch sniping on the public mempool you can still fill, but
+  the win rate against any competent Asian competitor is poor.
+- For high-frequency sandwich MEV every block, EU is effectively
+  uncompetitive on this chain.
 
 **Rule for the next deploy:** pick the DC *before* discussing node specs.
 Hetzner has no Asian DCs. Candidates:

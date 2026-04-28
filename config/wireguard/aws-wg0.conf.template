@@ -1,0 +1,16 @@
+# AWS Lightsail / EC2 side of the tunnel.
+# Generate keys on AWS:        wg genkey | tee /etc/wireguard/private.key | wg pubkey > /etc/wireguard/public.key
+# Replace placeholders, install at /etc/wireguard/wg0.conf, then:
+#   chmod 600 /etc/wireguard/wg0.conf
+#   systemctl enable --now wg-quick@wg0
+#   wg show
+[Interface]
+Address    = 10.0.0.2/24
+PrivateKey = __AWS_PRIVATE_KEY__
+SaveConfig = false
+
+[Peer]
+PublicKey           = __HETZNER_PUBLIC_KEY__
+Endpoint            = __HETZNER_PUBLIC_IP__:51820
+AllowedIPs          = 10.0.0.1/32
+PersistentKeepalive = 25

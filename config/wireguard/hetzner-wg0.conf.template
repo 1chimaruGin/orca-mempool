@@ -1,0 +1,16 @@
+# Hetzner side of the SG relay tunnel.
+# Generate keys on Hetzner:   wg genkey | tee /etc/wireguard/private.key | wg pubkey > /etc/wireguard/public.key
+# Replace placeholders, install at /etc/wireguard/wg0.conf, then:
+#   chmod 600 /etc/wireguard/wg0.conf
+#   ufw allow 51820/udp comment 'wireguard from aws-sg'
+#   systemctl enable --now wg-quick@wg0
+#   wg show
+[Interface]
+Address    = 10.0.0.1/24
+ListenPort = 51820
+PrivateKey = __HETZNER_PRIVATE_KEY__
+SaveConfig = false
+
+[Peer]
+PublicKey  = __AWS_PUBLIC_KEY__
+AllowedIPs = 10.0.0.2/32
