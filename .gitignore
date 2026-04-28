@@ -1,0 +1,33 @@
+# secrets / environment
+.env
+*.key
+api.key
+authorized_keys
+id_*
+*.pem
+
+# build artifacts
+build/
+bsc/
+node_modules/
+__pycache__/
+*.pyc
+
+# runtime / data
+node/
+geth/
+chaindata/
+*.lz4
+*.tar
+*.tar.lz4
+logs/
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# editor
+.vscode/
+.idea/
+*.swp

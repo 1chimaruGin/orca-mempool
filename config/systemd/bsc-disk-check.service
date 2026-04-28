@@ -1,0 +1,6 @@
+[Unit]
+Description=BSC node /data disk-usage check
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/bsc-disk-check.sh

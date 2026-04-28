@@ -1,0 +1,57 @@
+map_hash_bucket_size 128;
+
+map $http_x_api_key $bsc_api_ok {
+    default 0;
+    "__API_KEY__" 1;
+}
+
+map $http_upgrade $bsc_ws_connection {
+    default upgrade;
+    ''      close;
+}
+
+server {
+    listen __RPC_HTTP_PORT__ default_server;
+    listen [::]:__RPC_HTTP_PORT__ default_server;
+    server_name _;
+
+    access_log /var/log/nginx/bsc-rpc-access.log;
+    error_log  /var/log/nginx/bsc-rpc-error.log;
+
+    location / {
+        if ($bsc_api_ok = 0) {
+            return 403 "missing or invalid X-API-Key\n";
+        }
+        proxy_pass http://127.0.0.1:8545;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_read_timeout 60s;
+        proxy_send_timeout 60s;
+        proxy_buffering off;
+    }
+}
+
+server {
+    listen __RPC_WS_PORT__ default_server;
+    listen [::]:__RPC_WS_PORT__ default_server;
+    server_name _;
+
+    access_log /var/log/nginx/bsc-ws-access.log;
+    error_log  /var/log/nginx/bsc-ws-error.log;
+
+    location / {
+        if ($bsc_api_ok = 0) {
+            return 403 "missing or invalid X-API-Key\n";
+        }
+        proxy_pass http://127.0.0.1:8546;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection $bsc_ws_connection;
+        proxy_read_timeout 86400s;
+        proxy_send_timeout 86400s;
+        proxy_buffering off;
+    }
+}

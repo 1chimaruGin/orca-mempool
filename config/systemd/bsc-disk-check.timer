@@ -1,0 +1,11 @@
+[Unit]
+Description=BSC node /data disk-usage check timer
+Requires=bsc-disk-check.service
+
+[Timer]
+OnBootSec=2min
+OnUnitActiveSec=15min
+Unit=bsc-disk-check.service
+
+[Install]
+WantedBy=timers.target

@@ -1,0 +1,30 @@
+[Unit]
+Description=BSC dedicated RPC + mempool node
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=root
+ExecStart=__BIN_PATH__ \
+  --config __DATADIR__/config/config.toml \
+  --datadir __DATADIR__/node \
+  --syncmode snap \
+  --state.scheme path \
+  --db.engine pebble \
+  --cache __CACHE_MB__ \
+  --history.transactions 0 \
+  --tries-verify-mode none \
+  --rpc.allow-unprotected-txs \
+  --http \
+  --ws
+
+Restart=always
+RestartSec=5
+TimeoutStopSec=300
+KillSignal=SIGINT
+KillMode=mixed
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target
